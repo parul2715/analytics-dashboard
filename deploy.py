@@ -301,20 +301,23 @@ def dashboard():
     df_website_sessions["year"] = df_website_sessions["created_at"].dt.year
     df_website_sessions["quarter"] = df_website_sessions["created_at"].dt.quarter
 
-    df_website_pageviews["created_at"] = pd.to_datetime(df_website_pageviews["created_at"])  # <-- ADD THIS LINE
+    df_website_pageviews["created_at"] = pd.to_datetime(df_website_pageviews["created_at"])  
     df_website_pageviews["year"] = df_website_pageviews["created_at"].dt.year
     df_website_pageviews["quarter"] = df_website_pageviews["created_at"].dt.quarter
 
-    df_order["created_at"] = pd.to_datetime(df_order["created_at"])  # Optional safety
+    df_order["created_at"] = pd.to_datetime(df_order["created_at"]) 
     df_order["year"] = df_order["created_at"].dt.year
     df_order["quarter"] = df_order["created_at"].dt.quarter
 
+    df_order_items["created_at"] = pd.to_datetime(df_order_items["created_at"], errors="coerce")
     df_order_items["year"] = df_order_items["created_at"].dt.year
     df_order_items["quarter"] = df_order_items["created_at"].dt.quarter
 
+    df_order_item_refunds["created_at"] = pd.to_datetime(df_order_item_refunds["created_at"], errors="coerce")
     df_order_item_refunds["year"] = df_order_item_refunds["created_at"].dt.year
     df_order_item_refunds["quarter"] = df_order_item_refunds["created_at"].dt.quarter
 
+    df_products["created_at"] = pd.to_datetime(df_products["created_at"], errors="coerce")
     df_products["year"] = df_products["created_at"].dt.year
     df_products["quarter"] = df_products["created_at"].dt.quarter
 

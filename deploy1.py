@@ -305,19 +305,19 @@ def dashboard():
     df_website_pageviews["year"] = df_website_pageviews["created_at"].dt.year
     df_website_pageviews["quarter"] = df_website_pageviews["created_at"].dt.quarter
 
-    df_order["created_at"] = pd.to_datetime(df_order["created_at"]) 
+    df_order["created_at"] = pd.to_datetime(df_order["created_at"])  
     df_order["year"] = df_order["created_at"].dt.year
     df_order["quarter"] = df_order["created_at"].dt.quarter
 
-    df_order_items["created_at"] = pd.to_datetime(df_order_items["created_at"], errors="coerce")
+    df_order_items["created_at"] = pd.to_datetime(df_order_items["created_at"], errors='coerce')
     df_order_items["year"] = df_order_items["created_at"].dt.year
     df_order_items["quarter"] = df_order_items["created_at"].dt.quarter
 
-    df_order_item_refunds["created_at"] = pd.to_datetime(df_order_item_refunds["created_at"], errors="coerce")
+    df_order_item_refunds["created_at"] = pd.to_datetime(df_order_items["created_at"], errors='coerce')
     df_order_item_refunds["year"] = df_order_item_refunds["created_at"].dt.year
     df_order_item_refunds["quarter"] = df_order_item_refunds["created_at"].dt.quarter
 
-    df_products["created_at"] = pd.to_datetime(df_products["created_at"], errors="coerce")
+    df_products["created_at"] = pd.to_datetime(df_order_items["created_at"], errors='coerce')
     df_products["year"] = df_products["created_at"].dt.year
     df_products["quarter"] = df_products["created_at"].dt.quarter
 
@@ -807,7 +807,7 @@ def dashboard():
         top_traffic_sources = df_filtered.groupby('utm_source')['website_session_id'].count().reset_index().sort_values(by='website_session_id', ascending=False)
         
 
-        st.subheader("🔝 TopTraffic Sources")
+        st.subheader("🔝 Top Traffic Sources")
         fig, ax = plt.subplots(figsize=(8, 5))
         sns.barplot(data=top_traffic_sources, x='utm_source', y='website_session_id', palette='Set2', ax=ax)
         for p in ax.patches:
@@ -955,7 +955,7 @@ def dashboard():
             barplot.text(
             bar.get_x() + bar.get_width() / 2,
             height + (segment_counts['session_count'].max() * 0.01),
-            f"{int(height):,}",
+            f"{height / 1_000_000:,.2f}M",
             ha='center',
             va='bottom',
             fontsize=12,
@@ -965,6 +965,7 @@ def dashboard():
         ax.set_title("Traffic Distribution by Segment")
         ax.set_xlabel("Traffic Segment")
         ax.set_ylabel("Number of Sessions")
+        ax.grid(False)
         st.pyplot(fig)
 
 
@@ -1899,7 +1900,7 @@ def dashboard():
         for bar in ax.patches:
             height = bar.get_height()
             x = bar.get_x() + bar.get_width() / 2
-            ax.text(x,height * 0.5,f"{int(height):,}",ha='center',
+            ax.text(x,height * 0.5,f"{height/1_000_000:,.2f}M",ha='center',
                     va='center',color='black',fontsize=10 )
 
 # Styling
@@ -1963,7 +1964,7 @@ def dashboard():
         for bar in ax1.patches:
             height = bar.get_height()
             x = bar.get_x() + bar.get_width() / 2
-            ax1.text(x, height + (cvt_sorted['CVR'].max() * 0.01), f"{height:.2f}%", ha='center', fontsize=10)
+            ax1.text(x, height + (cvt_sorted['CVR'].max() * 0.01), f"{int(height):,}", ha='center', fontsize=10)
 
         ax1.set_title("Conversion Rate by Landing Page")
         ax1.set_xlabel("Landing Page")
@@ -1985,7 +1986,7 @@ def dashboard():
         for bar in ax2.patches:
             height = bar.get_height()
             x = bar.get_x() + bar.get_width() / 2
-            ax2.text(x, height + (top10_sessions['Sessions'].max() * 0.01), f"{int(height):,}", ha='center', fontsize=10)
+            ax2.text(x, height + (top10_sessions['Sessions'].max() * 0.01), f"{height/1_000:,.2f}K", ha='center', fontsize=10)
 
         ax2.set_title("Top Landing Pages by Session Volume")
         ax2.set_xlabel("Landing Page")
@@ -2181,36 +2182,59 @@ def dashboard():
     """,
     unsafe_allow_html=True
 )
+# ------------------ Monthly Sales Trend ------------------
 
-        # Sales by Month
-        Monthly_Sales = df_order_filtered.groupby(df_order_filtered['created_at'].dt.strftime('%b').rename('month'))['price_usd'].sum().reset_index()
+# Group sales by month
+        Monthly_Sales = df_order_filtered.groupby(
+            df_order_filtered['created_at'].dt.strftime('%b').rename('month')
+            )['price_usd'].sum().reset_index()
+
         Monthly_Sales.columns = ['month', 'sales']
-        # Define the correct month order
-        month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
-               'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
 
-# Apply categorical sort on 'view_month'
-        Monthly_Sales['month'] = pd.Categorical(Monthly_Sales['month'],
-                                 categories=month_order,  ordered=True )
+# Define correct month order
+        month_order = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                   'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+
+# Apply categorical sorting
+        Monthly_Sales['month'] = pd.Categorical(
+            Monthly_Sales['month'],
+            categories=month_order,
+            ordered=True
+    )
+
         Monthly_Sales = Monthly_Sales.sort_values('month').reset_index(drop=True)
 
+# Plot
 
-        
         st.subheader("📈 Monthly Sales")
+
         fig, ax = plt.subplots(figsize=(8, 6))
-        sns.lineplot(data=Monthly_Sales,
-                     x='month',
-                     y='sales',
-                     marker='o',
-                     color='royalblue',)
+        sns.lineplot(
+            data=Monthly_Sales,
+            x='month',
+            y='sales',
+            marker='o',
+            color='royalblue',
+            ax=ax
+        )
+
+
         for x, y in zip(Monthly_Sales['month'], Monthly_Sales['sales']):
-            plt.text(x, y + y * 0.01, f'{y/1_000_000:.2f}M', ha='center', fontsize=9)
-            
-            # Chart labels
-        plt.title('Monthly Sales Trend', fontsize=16)
-        plt.xlabel('Month')
-        plt.ylabel('Sales (in Millions)')
-        plt.grid(False)
+            ax.text(
+                x,
+                y + y * 0.01,  # small vertical offset
+                f'{y/1_000_000:.2f}M',
+                ha='center',
+                fontsize=9
+        )
+
+
+        ax.set_title('Monthly Sales Trend', fontsize=16)
+        ax.set_xlabel('Month')
+        ax.set_ylabel('Sales (in Millions)')
+        ax.grid(False)
+
+
         st.pyplot(fig)
 
         st.markdown("<br><br>", unsafe_allow_html=True)
@@ -2237,11 +2261,22 @@ def dashboard():
         # Add data labels (only at end points to avoid clutter)
         x_data = monthly_orders['month']
         y_data = monthly_orders['orders']
+
+        max_y = y_data.max()
+
         for x, y in zip(x_data, y_data):
-            ax.text(
-                x, y + y * 0.01,  # slight offset
-                f'{int(y):,}',    # formatted with comma
-                ha='center', va='bottom', fontsize=9, rotation=0)
+            offset = 16 if y < max_y else -21
+
+            ax.annotate(
+                f'{int(y):,}',   
+                (x, y),
+                textcoords="offset points",
+                xytext=(0, offset),  # vertical offset in points
+                ha='center',
+                fontsize=9,
+                rotation=0)
+            
+            #ax.text(x, y + y * 0.05,  # slight offsetf'{int(y):,}',    # formatted with commaha='center', va='bottom', fontsize=9, rotation=0)
 
 # Chart labels
         plt.title('Monthly Order Trend', fontsize=16)
@@ -2330,7 +2365,7 @@ def dashboard():
         bars = plt.bar(peak_session_day['Day'], peak_session_day['Count'], color='teal', width=0.5)
         for bar in bars:
             yval = bar.get_height()
-            plt.text(bar.get_x() + bar.get_width()/2, yval + 5, f"{yval:,.0f}", ha='center', va='bottom', fontsize=9)
+            plt.text(bar.get_x() + bar.get_width()/2, yval + 5, f"{yval / 1_000:,.0f}K", ha='center', va='bottom', fontsize=9)
 
         plt.title('Website Sessions by Day of the Week')
         plt.xlabel('Day of the Week')
@@ -2561,50 +2596,6 @@ def dashboard():
 
         st.markdown("<br><br>", unsafe_allow_html=True)
 
-
-        #-----------New vs repeat buyer distribution------------------
-
-#Count total number of orders per user
-        user_order_counts = df_order_filtered.groupby('user_id').size().reset_index(name='order_count')
-
-#Labelling users based on  order count
-        user_order_counts['buyer_type'] = user_order_counts['order_count'].apply(
-            lambda x: 'New Buyer' if x == 1 else 'Repeat Buyer'
-        )
-
-#count of each buyer type
-        buyer_counts = user_order_counts['buyer_type'].value_counts().reset_index()
-        buyer_counts.columns = ['buyer_type', 'user_count']
-
-
-        st.subheader("🆕 New V/S Repeat Buyer Distribution")
-
-# Plot 
-        fig, ax = plt.subplots(figsize=(1.5, 1.5))
-        colors = ['#66c2a5', '#fc8d62']
-
-        wedges, texts, autotexts = ax.pie(
-                buyer_counts['user_count'],
-                labels=buyer_counts['buyer_type'],
-                autopct='%.1f%%',
-                startangle=90,
-                colors=colors
-        )
-
-        for text in texts:
-                text.set_fontsize(5)
-
-        for autotext in autotexts:
-                autotext.set_fontsize(5)
-
-        ax.set_title('New vs Repeat Buyer Distribution', fontsize=10)
-        ax.axis('equal')
-        plt.tight_layout()
-        st.pyplot(fig)
-
-
-        st.markdown("<br><br>", unsafe_allow_html=True)
-
 #--------------------CVR by one time and repeat buyers-----------------
 
 # Count orders per user
@@ -2751,6 +2742,8 @@ def dashboard():
         sns.set(style="white")
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.barplot(data=revenue_by_segment, x='Customer_Segment', y='Monetary', ax=ax)
+
+        ax.ticklabel_format(style='plain', axis='y')
 
         ax.set_title('Revenue Contribution by Customer Segment')
         ax.set_ylabel('Total Revenue (USD)')

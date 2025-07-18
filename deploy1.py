@@ -654,15 +654,39 @@ def dashboard():
 
         pct_returned_items = (Item_refunded_count / total_quantities_sold) * 100
 
-# Days Between First and Second Purchase
+#Days Between First and Second Purchase 
+
+
         orders_sorted = df_order_filtered.sort_values(['user_id', 'created_at'])
+
+
         first_two_orders = orders_sorted.groupby('user_id').head(2).copy()
+
+
         first_two_orders['order_rank'] = first_two_orders.groupby('user_id').cumcount() + 1
+
+
         pivot_orders = first_two_orders.pivot(index='user_id', columns='order_rank', values='created_at')
-        pivot_orders.columns = ['first_order', 'second_order']
-        pivot_orders = pivot_orders.dropna()
-        pivot_orders['days_between'] = (pivot_orders['second_order'] - pivot_orders['first_order']).dt.days
-        avg_gap = pivot_orders['days_between'].mean()
+
+
+        pivot_orders.columns = [f'order_{col}' for col in pivot_orders.columns.tolist()]
+
+        if 'order_1' in pivot_orders.columns and 'order_2' in pivot_orders.columns:
+    
+            pivot_orders = pivot_orders.dropna(subset=['order_1', 'order_2'])
+
+   
+            pivot_orders['days_between'] = (pivot_orders['order_2'] - pivot_orders['order_1']).dt.days
+
+    
+            avg_gap = pivot_orders['days_between'].mean()
+
+    
+            st.write(f"📊 Average Days Between First and Second Purchase: **{avg_gap:.2f} days**")
+
+        else:
+    
+            st.write("ℹ️ Not enough users with two purchases to calculate average gap.")
 
 # PRODUCT SUMMARY (Revenue, Cost, Profit, Percentages)
         product_summary = df_items_filtered.groupby('product_id').agg(

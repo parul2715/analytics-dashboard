@@ -657,36 +657,27 @@ def dashboard():
 #Days Between First and Second Purchase 
 
 
+# -------------------- Days Between First and Second Purchase --------------------
+
+# Sort and select first two orders per user
         orders_sorted = df_order_filtered.sort_values(['user_id', 'created_at'])
-
-
         first_two_orders = orders_sorted.groupby('user_id').head(2).copy()
-
-
         first_two_orders['order_rank'] = first_two_orders.groupby('user_id').cumcount() + 1
 
-
+# Pivot to create first_order and second_order columns
         pivot_orders = first_two_orders.pivot(index='user_id', columns='order_rank', values='created_at')
-
-
         pivot_orders.columns = [f'order_{col}' for col in pivot_orders.columns.tolist()]
 
+# Initialize display value for KPI
+        avg_gap_display = "Not enough data"
+
+# Calculate average days gap if data is valid
         if 'order_1' in pivot_orders.columns and 'order_2' in pivot_orders.columns:
-    
-            pivot_orders = pivot_orders.dropna(subset=['order_1', 'order_2'])
-
-   
-            pivot_orders['days_between'] = (pivot_orders['order_2'] - pivot_orders['order_1']).dt.days
-
-    
-            avg_gap = pivot_orders['days_between'].mean()
-
-    
-            st.write(f"📊 Average Days Between First and Second Purchase: **{avg_gap:.2f} days**")
-
-        else:
-    
-            st.write("ℹ️ Not enough users with two purchases to calculate average gap.")
+             pivot_orders = pivot_orders.dropna(subset=['order_1', 'order_2'])
+             if not pivot_orders.empty:
+                  pivot_orders['days_between'] = (pivot_orders['order_2'] - pivot_orders['order_1']).dt.days
+                  avg_gap = pivot_orders['days_between'].mean()
+                  avg_gap_display = f"{avg_gap:.2f} days"
 
 # PRODUCT SUMMARY (Revenue, Cost, Profit, Percentages)
         product_summary = df_items_filtered.groupby('product_id').agg(
@@ -775,7 +766,7 @@ def dashboard():
         with row6_col2:
             custom_kpi("📊 Avg Items/Order", f"{avg_item_per_order:.2f}")
         with row6_col3:
-            custom_kpi("⏱️ Avg Days 1st → 2nd buy", f"{avg_gap:.2f} days")
+            custom_kpi("⏱️ Avg Days 1st → 2nd buy", avg_gap_display)
 
 
 # Section 3: User Behavior

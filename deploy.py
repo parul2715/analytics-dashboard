@@ -1239,7 +1239,7 @@ def dashboard():
                 ax.text(
                         width - 1000,  
                         y,
-                        f"${width:,.0f}",
+                        f"{width:,.0f}",
                         va='center',
                         ha='right',
                         fontsize=9,

@@ -1846,7 +1846,7 @@ def dashboard():
 
         st.markdown("<br><br>", unsafe_allow_html=True)
 
-                      # 2.Landing Page A/B Test Analysis
+                      # 2.Landing Page  Analysis
 
         landing_sessions = pd.merge(landing_pages, df_filtered, on='website_session_id')
         landing_orders = pd.merge(landing_sessions, df_order, on='website_session_id', how='left')
@@ -1896,7 +1896,7 @@ def dashboard():
            st.markdown("<br><br>", unsafe_allow_html=True)
 
 
-                         # 3. TOP WEBSITE PAGES
+                         # 3. TOP 10 WEBSITE PAGES
 
 #  Calculate Top Pages ---
         top_pages = df_pageview_filtered.groupby('pageview_url').size().reset_index(name='Total_Views')
@@ -1922,6 +1922,8 @@ def dashboard():
             x = bar.get_x() + bar.get_width() / 2
             ax.text(x,height * 0.5,f"{height/1_000_000:,.2f}M",ha='center',
                     va='center',color='black',fontsize=10 )
+            
+        ax.get_yaxis().set_major_formatter(FuncFormatter(lambda x, _: f'{x/1_000_000:.2f}M'))
 
 # Styling
         ax.set_title("Top Website Pages by Pageviews", fontsize=14)
@@ -1966,35 +1968,15 @@ def dashboard():
 
 
         
-        st.subheader("🚪 Top Landing Pages")
+        #st.subheader("🚪 Top Landing Pages")
 
         #with st.expander("📋 Full Landing Page Table"):
             #st.dataframe(cvt_by_lander.sort_values(by='CVR', ascending=False).reset_index(drop=True))
 
-# --- Chart 1: CVR by Landing Page ---
-        st.markdown("<br><br>", unsafe_allow_html=True)
-        st.markdown("### 🎯 Conversion Rate by Landing Page")
 
-        cvt_sorted = cvt_by_lander.sort_values(by='CVR', ascending=False).head(10)
-        colors_cvr = sns.color_palette("husl", len(cvt_sorted))
 
-        fig1, ax1 = plt.subplots(figsize=(10, 6))
-        sns.barplot(x='lander_page', y='CVR', data=cvt_sorted, palette=colors_cvr, ax=ax1)
+#----------------- Sessions by Landing Page ---------------------
 
-        for bar in ax1.patches:
-            height = bar.get_height()
-            x = bar.get_x() + bar.get_width() / 2
-            ax1.text(x, height + (cvt_sorted['CVR'].max() * 0.01), f"{height:,.2f}%", ha='center', fontsize=10)
-
-        ax1.set_title("Conversion Rate by Landing Page")
-        ax1.set_xlabel("Landing Page")
-        ax1.set_ylabel("CVR (%)")
-        ax1.set_xticklabels(ax1.get_xticklabels(), rotation=45, ha='right')
-        ax1.grid(False)
-        st.pyplot(fig1)
-
-        st.markdown("<br><br>", unsafe_allow_html=True)
-# --- Chart 2: Sessions by Landing Page ---
         st.markdown("### 📈 Top Landing Pages by Session Count")
 
         top10_sessions = cvt_by_lander.sort_values(by='Sessions', ascending=False).head(10)
@@ -2193,6 +2175,10 @@ def dashboard():
         st.pyplot(fig)  
 
 
+#-------------------BUSINESS AND SEASONALITY----------------------------
+
+
+
     elif selected_page == "Business and Seasonality analysis":
         st.markdown(
     """
@@ -2314,7 +2300,7 @@ def dashboard():
         st.pyplot(fig)
 
         st.markdown("<br><br>", unsafe_allow_html=True)
-        # Sales by Weekend vs Weekday
+# Sales by Weekend vs Weekday
         sales_by_daytype = df_order_filtered.groupby(df_order_filtered['created_at'].dt.weekday.apply(lambda x: 'weekend' if x >=5 else 'weekday'))['price_usd'].sum().reset_index()
         sales_by_daytype.columns = ['DayType', 'Sales']
         
@@ -2337,7 +2323,9 @@ def dashboard():
         st.pyplot(fig)
 
         st.markdown("<br><br>", unsafe_allow_html=True)
-        # Sessions by Hour of Day
+
+
+# Sessions by Hour of Day
         hourly_sessions = df_filtered.groupby(df_filtered['created_at'].dt.hour)['website_session_id'].count().reset_index(name = 'Number of Sessions')
 
         st.subheader("🕒 Sessions by Hour of Day")
@@ -2357,7 +2345,7 @@ def dashboard():
 
         st.markdown("<br><br>", unsafe_allow_html=True)
 
-        # Avg Revenue per Day
+# Avg Revenue per Day
         average_revenue_day = df_order_filtered.groupby(df_order_filtered['created_at'].dt.day_name())['price_usd'].mean().reset_index(name = 'Average Revenue')
         day_order = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday']
         average_revenue_day['created_at'] = pd.Categorical(average_revenue_day['created_at'], categories=day_order)
@@ -2538,7 +2526,7 @@ def dashboard():
         ax.set_xlabel('Month')
         ax.set_ylabel('Session Count')
         plt.setp(ax.get_xticklabels(), rotation=0)
-        ax.legend(title='Buyer Type')
+        ax.legend(title='User Type')
         plt.tight_layout()
         st.pyplot(fig)
 
@@ -2726,7 +2714,7 @@ def dashboard():
         def segment_customer(score):
             if score >= 7:
                 return 'High-Value'
-            elif score >= 5:
+            elif score >= 4:
                 return 'Mid-Value'
             else:
                 return 'Low-Value'
@@ -2794,7 +2782,7 @@ def dashboard():
         fig, ax = plt.subplots(figsize=(6, 4))
         sns.barplot(data=revenue_by_segment, x='Customer_Segment', y='Monetary', ax=ax)
 
-        ax.ticklabel_format(style='plain', axis='y')
+        ax.get_yaxis().set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x/1e6:.2f}M'))
 
         ax.set_title('Revenue Contribution by Customer Segment')
         ax.set_ylabel('Total Revenue (USD)')

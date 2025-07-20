@@ -1990,6 +1990,8 @@ def dashboard():
             x = bar.get_x() + bar.get_width() / 2
             ax2.text(x, height + (top10_sessions['Sessions'].max() * 0.01), f"{height/1_000:,.2f}K", ha='center', fontsize=10)
 
+        ax2.get_yaxis().set_major_formatter(FuncFormatter(lambda x, _: f'{x/1_000:.0f}K'))
+
         ax2.set_title("Top Landing Pages by Session Volume")
         ax2.set_xlabel("Landing Page")
         ax2.set_ylabel("Sessions")
@@ -2744,7 +2746,7 @@ def dashboard():
         st.subheader("👥 Count Of Customers By RFM Segmentation")
 
 # Plot
-        fig, ax = plt.subplots(figsize=(2, 2))
+        fig, ax = plt.subplots(figsize=(3, 2))
         colors = ["#8db8d3", "#cdcd92", "#e9968d"]
 #font size
         wedges, texts, autotexts = ax.pie(
@@ -2756,10 +2758,10 @@ def dashboard():
         )
 
         for text in texts:
-                text.set_fontsize(7)         # Segment labels
+                text.set_fontsize(5)         # Segment labels
 
         for autotext in autotexts:
-                autotext.set_fontsize(6)     # Percent + count text
+                autotext.set_fontsize(5)     # Percent + count text
 
         ax.set_title('Customer Segment Distribution (RFM)', fontsize=10)
         ax.axis('equal')

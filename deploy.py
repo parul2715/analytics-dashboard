@@ -587,6 +587,9 @@ def dashboard():
 
     if st.sidebar.button("🚪 Logout" , key="logout_button"):
         st.session_state.logged_in = False
+        st.session_state.username = ""
+        st.session_state.page = "login"
+        st.session_state.login_attempted = False 
         st.rerun()
 
     st.sidebar.markdown('</div>', unsafe_allow_html=True)

@@ -1284,7 +1284,7 @@ def dashboard():
                 
         )
 
-        formatter = FuncFormatter(lambda x, _: f'{x / 1e6:.2f}M')
+        formatter = FuncFormatter(lambda x, _: f'{x / 1e6:.1f}M')
         ax.xaxis.set_major_formatter(formatter)
         
         for patch in ax.patches:
@@ -1293,7 +1293,7 @@ def dashboard():
                 ax.text(
                         width - (width * 0.02),  
                         y,
-                        f"${width / 1e6:.1f}M",
+                        f"${width / 1e6:.2f}M",
                         va='center',
                         ha='right',
                         fontsize=9,

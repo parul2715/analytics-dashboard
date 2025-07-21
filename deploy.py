@@ -1284,7 +1284,7 @@ def dashboard():
                 
         )
 
-        formatter = FuncFormatter(lambda x, _: f'{x / 1e6:.1f}M')
+        formatter = FuncFormatter(lambda x, _: f'{x / 1e6:.2f}M')
         ax.xaxis.set_major_formatter(formatter)
         
         for patch in ax.patches:
